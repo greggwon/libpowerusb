@@ -1,0 +1,45 @@
+PowerUSB Note :
+
+	The source code has been compiled and tested on Ubuntu 11.10 with no issues. The usage of packages and installation of the packages hereby mentioned are with respect to Ubuntu. For other than Ubuntu based systems use the equivalent platform specific packages and install procedure.
+
+PowerUSB usage procedure :
+	
+	Before making use of powerusb application make sure the following packages are installed :
+		1. libudev
+		2. libudev-dev
+		3. libusb-1.0-0-dev
+
+	To install the above packages, run the following commands in the terminal
+		- sudo apt-get install libudev
+		- sudo apt-get install libudev-dev
+		- sudo apt-get install libusb-1.0-0-dev
+
+PowerUSB API :
+
+	Upon successfull complilation of the source code libpowerusb.so file is generated which is the PowerUSB API implementation. Refer the PowerUSB API documentation which exposes the functions. (For source code compilation refere compile file)
+
+	The following example shows how to invoke functions from the libpowerusb.so PowerUSB API.
+
+		- In order to invoke functions from the libpowerusb.so, the shared object library libpowerusb.so has to be loaded into the memory as follows 
+			#include <dlfcn.h>			
+			void *sharedLibraryHandle = NULL;
+			void Classname::loadSharedLibrary()
+			{
+				sharedLibraryHandle = dlopen ("./libpowerusb.so", RTLD_LAZY);
+				if (!sharedLibraryHandle) 
+				{
+				    fputs (dlerror(), stderr);
+				    sharedLibraryHandle = NULL;
+				    exit(1);
+				}
+			}
+
+		- Next to call functions from libpowerusb.so declare function pointers for the respective functions.
+			Example : - In order to call the function 'SetPortPowerUSB' from libpowerusb.so declare the function pointer as 
+				    int (*SetPortPowerUSB_Address)(int, int, int); 
+				  - The function can be called by the following commands 
+				    SetPortPowerUSB_Address = (int (*)(int, int, int))dlsym(sharedLibraryHandle, "SetPortPowerUSB");
+		                    (*SetPortPowerUSB_Address)(1, -1, -1);
+				  - The above code sets the powerusb port states to port1 = on, port2 = off and port3 = off.
+
+		- In the same way other functions can be called from libpowerusb.so
