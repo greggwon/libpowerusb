@@ -17,68 +17,72 @@
 #include <fcntl.h>
 #include <pthread.h>
 
-//#include <dlfcn.h>
-
 #include <PwrUSBHid.h>
 #include <PwrUSBImp.h>
 
-#define POWER_USB_MAXNUM 4
+const int POWER_USB_MAXNUM = 4;
 
-#define MY_DEVICE_ID  "Vid_04d8&Pid_003F" // This is the Vendor ID and Product ID for PowerUSB microcontroller
+const char *MY_DEVICE_ID ="Vid_04d8&Pid_003F"; // This is the Vendor ID and Product ID for PowerUSB microcontroller
 
-#define BUF_LEN 256
-#define BUF_WRT 65
+const int BUF_LEN=256;
+const int BUF_WRT=65;
 
 // Commands to write to PowerUSB
-#define ON_PORT1			'A'
-#define OFF_PORT1			'B'
-#define ON_PORT2			'C'
-#define OFF_PORT2			'D'
-#define ON_PORT3			'E'
-#define OFF_PORT3			'P'
+// :.,'as/\([^ 	]*\)[ 	]\([^ 	]*\)[ 	][ 	]*\([^ 	]*\)/const char \2 = \3;/
+const char ON_PORT1 = 'A';
+const char OFF_PORT1 = 'B';
+const char ON_PORT2 = 'C';
+const char OFF_PORT2 = 'D';
+const char ON_PORT3 = 'E';
+const char OFF_PORT3 = 'P';
 
-#define DEFON_PORT1			'N'
-#define DEFOFF_PORT1			'F'
-#define DEFON_PORT2			'G'
-#define DEFOFF_PORT2			'Q'
-#define DEFON_PORT3			'O'
-#define DEFOFF_PORT3			'H'
+const char DEFON_PORT1 = 'N';
+const char DEFOFF_PORT1 = 'F';
+const char DEFON_PORT2 = 'G';
+const char DEFOFF_PORT2 = 'Q';
+const char DEFON_PORT3 = 'O';
+const char DEFOFF_PORT3 = 'H';
 
-#define	READ_P1				0xa1
-#define	READ_P2				0xa2
-#define	READ_P3				0xac
+const int READ_P1 = 0xa1;
+const int READ_P2 = 0xa2;
+const int READ_P3 = 0xac;
 
-#define	READ_P1_PWRUP			0xa3
-#define	READ_P2_PWRUP			0xa4
-#define	READ_P3_PWRUP			0xad
+const int READ_P1_PWRUP = 0xa3;
+const int READ_P2_PWRUP = 0xa4;
+const int READ_P3_PWRUP = 0xad;
 	
-#define	READ_FIRMWARE_VER		0xa7
-#define READ_MODEL			0xaa
+const int READ_FIRMWARE_VER = 0xa7;
+const int READ_MODEL = 0xaa;
 
-#define READ_CURRENT			0xb1
-#define READ_CURRENT_CUM		0xb2
-#define RESET_CURRENT_COUNT		0xb3
-#define	WRITE_OVERLOAD			0xb4
-#define READ_OVERLOAD			0xb5
-#define SET_CURRENT_RATIO		0xb6
-#define RESET_BOARD			0xc1
-#define SET_CURRENT_OFFSET		0xc2
+const int READ_CURRENT = 0xb1;
+const int READ_CURRENT_CUM = 0xb2;
+const int RESET_CURRENT_COUNT = 0xb3;
+const int WRITE_OVERLOAD = 0xb4;
+const int READ_OVERLOAD = 0xb5;
+const int SET_CURRENT_RATIO = 0xb6;
+const int RESET_BOARD = 0xc1;
+const int SET_CURRENT_OFFSET = 0xc2;
 
-#define	ALL_PORT_ON			0xa5
-#define	ALL_PORT_OFF			0xa6
-#define	SET_MODE			0xa8
-#define	READ_MODE			0xa9 
+const int ALL_PORT_ON = 0xa5;
+const int ALL_PORT_OFF = 0xa6;
+const int SET_MODE = 0xa8;
+const int READ_MODE = 0xa9;
 
 // Digital IO
-#define	SET_IO_DIRECTION	0xd1
-#define	SET_IO_OUTPUT		0xd3
-#define	GET_IO_INPUT		0xd4
-#define	SET_IO_CLOCK		0xd5
-#define GET_IO_OUTPUT		0xd6
-#define SET_IO_TRIGGER		0xd7
+const int SET_IO_DIRECTION=0xd1;
+const int SET_IO_OUTPUT=0xd3;
+const int GET_IO_INPUT=0xd4;
+const int SET_IO_CLOCK=0xd5;
+const int GET_IO_OUTPUT=0xd6;
+const int SET_IO_TRIGGER=0xd7;
 
 #define TRUE  1
 #define FALSE 0
+
+const unsigned short PWRUSB_VENDOR_ID = 0x4d8;
+const unsigned short PWRUSB_PRODUCT_ID = 0x03f;
+
+const int PWRUSB_NO_CHANGE=-1;
 
 class PowerUSB {
 
@@ -95,10 +99,9 @@ private:
 	unsigned char OUTBuffer[65];	// Allocate a memory buffer equal to the OUT endpoint size + 1
 	unsigned char INBuffer[65];	// Allocate a memory buffer equal to the IN endpoint size + 1
 	void *sharedLibraryHandle;	// Pointer to Shared Library
+	bool onOffCheck( int port, int status );
 
 public:
-	const unsigned short VENDOR_ID = 0x4d8;
-	const unsigned short PRODUCT_ID = 0x03f;
 	static bool debugging;
 	PowerUSB();
 	virtual ~PowerUSB() {}

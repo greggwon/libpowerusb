@@ -14,7 +14,6 @@ static void debug( T fmt, Args... args ) {
 bool PowerUSB::debugging;
 
 PowerUSB::PowerUSB() {
-	debugging= 1;
 	CurrentDevice = -1;
 	AttachedState = 0;
 	AttachedDeviceCount = 0;
@@ -40,7 +39,7 @@ int PowerUSB::init(int *model)
 	if ((AttachedDeviceCount = checkConnected()) > 0)		
 	{
 		debug( "%d devices attached, check for 0x%04x:0x%04x\n",
-			AttachedDeviceCount, VENDOR_ID, PRODUCT_ID);
+			AttachedDeviceCount, PWRUSB_VENDOR_ID, PWRUSB_PRODUCT_ID);
 		// For each of the connected devices, check to see whether it can read and write.
 		for (i = 0; i < AttachedDeviceCount; i++)
 		{
@@ -179,12 +178,14 @@ int PowerUSB::setDefaultState(int state1, int state2, int state3)
 
 	//The first byte is the "Report ID" and does not get sent over the USB bus.  Always set = 0.
 	OUTBuffer[0] = 0;
+	OUTBuffer[1] = 0;
 	if (state1 >= 0)
 	{
 		if (state1)
 			OUTBuffer[1]= DEFON_PORT1;
 		else
 			OUTBuffer[1] = DEFOFF_PORT1;
+		debug("Setting default for port1 to %d ('%c')\n", OUTBuffer[1], OUTBuffer[1] );
 		r = writeData(2);
 		usleep(20*1000);
 	}
@@ -195,6 +196,7 @@ int PowerUSB::setDefaultState(int state1, int state2, int state3)
 			OUTBuffer[1] = DEFON_PORT2;
 		else
 			OUTBuffer[1] = DEFOFF_PORT2;
+		debug("Setting default for port2 to %d ('%c')\n", OUTBuffer[1], OUTBuffer[1] );
 		r = writeData(2);
 		usleep(20*1000);	
 	}
@@ -205,6 +207,7 @@ int PowerUSB::setDefaultState(int state1, int state2, int state3)
 			OUTBuffer[1] = DEFON_PORT3;
 		else
 			OUTBuffer[1] = DEFOFF_PORT3;
+		debug("Setting default for port3 to %d ('%c')\n", OUTBuffer[1], OUTBuffer[1] );
 		r = writeData(2);	
 	}
 	// read and clear the input buffer
@@ -257,6 +260,35 @@ int PowerUSB::readPortState(int *port1, int *port2, int *port3)
 	return r;
 }
 
+bool PowerUSB::onOffCheck( int port, int status ) {
+	bool state;
+	debug("onOffCheck( %d, %d )\n", port, status );
+	switch(status) {
+		case DEFOFF_PORT1:
+		case DEFOFF_PORT2:
+		case DEFOFF_PORT3:
+		case OFF_PORT1:
+		case OFF_PORT2:
+		case OFF_PORT3:
+			state = false;
+			break;
+
+		case DEFON_PORT1:
+		case DEFON_PORT2:
+		case DEFON_PORT3:
+		case ON_PORT1:
+		case ON_PORT2:
+		case ON_PORT3:
+			state = true;
+			break;
+
+		default:
+			state = status;
+			break;
+	}
+	return state;
+}
+
 int PowerUSB::readDefaultPortState(int *port1, int *port2, int *port3)
 {
 	int r;
@@ -273,7 +305,7 @@ int PowerUSB::readDefaultPortState(int *port1, int *port2, int *port3)
 		writeData(2);
 		usleep(20*1000);
 		r=readData();
-		*port1 = (INBuffer[0]==0 ? 0:1);
+		*port1 = onOffCheck( 1, INBuffer[0] );
 		usleep(30*1000);
 	}
 	if (*port2 > 0)
@@ -284,7 +316,7 @@ int PowerUSB::readDefaultPortState(int *port1, int *port2, int *port3)
 		writeData(2);
 		usleep(20*1000);
 		r=readData();
-		*port2 = (INBuffer[0]==0 ? 0:1);
+		*port2 = onOffCheck( 2, INBuffer[0] );
 		usleep(30*1000);
 	}
 	if (*port3 > 0)
@@ -295,9 +327,10 @@ int PowerUSB::readDefaultPortState(int *port1, int *port2, int *port3)
 		writeData(2);
 		usleep(20*1000);
 		r=readData();
-		*port3 = (INBuffer[0]==0 ? 0:1);
+		*port3 = onOffCheck( 3, INBuffer[0] );
 		usleep(30*1000);
 	}
+	debug( "readDefaultPortState: return r=%d\n", r );
 	return r;
 }
 
@@ -765,7 +798,7 @@ int PowerUSB::writeData(int len)
 
 	// Initialize unused bytes to 0xFF for lower EMI and power consumption
 	// when driving the USB cable.
-	memset( OUTBuffer+len, 0xff, BUF_WRT );
+	memset( OUTBuffer+len, 0xff, BUF_WRT-len );
 
 	//Now send the packet to the USB firmware on the microcontroller
 	//Blocking function, unless an "overlapped" structure is used
