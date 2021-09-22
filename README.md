@@ -19,3 +19,4 @@ PowerUSB API :
 	Upon successfull complilation of the source code libpowerusb.so file is generated.
 
 	To use this library, you can use 'sudo make install' to install it into your system under the /usr/local/ directory tree.  The paths are in the Makefile and can be altered for installation into other locations.
+
