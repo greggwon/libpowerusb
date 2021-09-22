@@ -1,9 +1,9 @@
 PowerUSB Note:
 
-The source code has been compiled and tested on Ubuntu 20.04 with no issues. The
-usage of packages and installation of the packages hereby mentioned are with respect to
-Ubuntu. For other than Ubuntu based systems use the equivalent platform specific packages
-and install procedure.
+	The source code has been compiled and tested on Ubuntu 20.04 with no issues. The
+	usage of packages and installation of the packages hereby mentioned are with respect to
+	Ubuntu. For other than Ubuntu based systems use the equivalent platform specific packages
+	and install procedure.
 
 PowerUSB usage procedure :
 	
