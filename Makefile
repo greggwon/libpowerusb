@@ -9,6 +9,9 @@ HEADER=\
 	PwrUSBImp.h \
 	PwrUSBHid.h
 
+POWER_RULES=99-powerusb.rules
+HID=RULES=98-disable-hid.rules
+
 INCLDIR=/usr/local/include/powerusb-1.0
 
 LIB=libpowerusb.so
@@ -30,3 +33,5 @@ install: $(LIB)
 	chmod 775 $(INCLDIR)
 	cp $(HEADER) $(INCLDIR)/
 	chmod 664 $(INCLDIR)/*
+	cp $(POWER_RULES) /etc/udev/rules.d/
+	udevadm trigger
