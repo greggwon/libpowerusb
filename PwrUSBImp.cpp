@@ -95,13 +95,25 @@ int PowerUSB::close()
 	return 0;
 }
 
-int PowerUSB::setCurrentDevice(int count)
+int PowerUSB::getCurrentDevice() {
+	return CurrentDevice;
+}
+
+/**
+ *  Set the referenced device to the passed index.  When there is no
+ *  such device, the current device remains unchanged.
+ *
+ *  Returns: current selected device after change, if any.
+ */ 
+int PowerUSB::setCurrentDevice(int devno)
 {
-	debug( "SetCurrentPowerUSB =%d, attached=%d\n", count, AttachedState );
-	if (count >= AttachedDeviceCount)
-		count = AttachedDeviceCount - 1;
-	CurrentDevice = count;
-	return count;
+	debug( "SetCurrentPowerUSB =%d, attached=%d\n", devno, AttachedState );
+	if (devno < 0 || devno >= AttachedDeviceCount) {
+		devno = AttachedDeviceCount - 1;
+	}
+	if( devno >= 0 )
+		CurrentDevice = devno;
+	return CurrentDevice;
 }
 
 // Checks to see if PowerUSB device is connected to computer
@@ -230,7 +242,7 @@ int PowerUSB::readPortState(int *port1, int *port2, int *port3)
 		OUTBuffer[0] = 0;
 		OUTBuffer[1]= READ_P1;
 		writeData(2);
-		usleep(20*1000);
+		usleep(30*1000);
 		r = readData();
 		*port1 = (INBuffer[0]==0 ? 0:1);
 		usleep(30*1000);
@@ -241,7 +253,7 @@ int PowerUSB::readPortState(int *port1, int *port2, int *port3)
 		OUTBuffer[0] = 0;
 		OUTBuffer[1]= READ_P2;
 		writeData(2);
-		usleep(20*1000);
+		usleep(30*1000);
 		r = readData();
 		*port2 = (INBuffer[0]==0 ? 0:1);
 		usleep(30*1000);
@@ -252,7 +264,7 @@ int PowerUSB::readPortState(int *port1, int *port2, int *port3)
 		OUTBuffer[0] = 0;
 		OUTBuffer[1]= READ_P3;
 		writeData(2);
-		usleep(20*1000);
+		usleep(30*1000);
 		r = readData();
 		*port3 = (INBuffer[0]==0 ? 0:1);
 		usleep(30*1000);
@@ -347,6 +359,7 @@ int PowerUSB::getFirmwareVersion()
 	OUTBuffer[0] = 0;
 	OUTBuffer[1]= READ_FIRMWARE_VER;
 	r = writeData(2);
+	usleep(40*1000);
 	readData();
 	r = INBuffer[0];
 	usleep(20*1000);
@@ -383,10 +396,10 @@ int PowerUSB::getModel()
 	OUTBuffer[0] = 0;
 	OUTBuffer[1]= READ_MODEL;
 	r = writeData(2);
-	usleep(50*1000);
+	usleep(30*1000);
 	readData();
 	r = INBuffer[0];
-	usleep(20*1000);
+	usleep(30*1000);
 	debug( "getModel: model=%d\n", r );
 	return r;
 }
@@ -532,6 +545,7 @@ int PowerUSB::setCurrentOffset()
 	r = writeData(2);
 	usleep(20*1000);
 	readData();			// read and clear the input buffer
+	usleep(20*1000);
 	return r;
 }
 
@@ -571,24 +585,24 @@ int PowerUSB::setIODirection(int direction[])
 	return r;
 }
 
-int PowerUSB::setOutputState(int output[])
+int PowerUSB::setOutputState(int outputs[])
 {
 	int r, i;
-	unsigned char outFlag;
+	unsigned char outFlags;
 
 	if(AttachedState != TRUE)
 		return -1;
-	outFlag = 0;
+	outFlags = 0;
 	// 7 IO ports. put 7 bytes as bits in one byte
 	for (i = 0; i < 7; i++) {
-		if (output[i]) {
-			outFlag = (outFlag | (0x01 << i));
+		if (outputs[i]) {
+			outFlags = (outFlags | (0x01 << i));
 		}
 	}
 	//The first byte is the "Report ID" and does not get sent over the USB bus.  Always set = 0.
 	OUTBuffer[0] = 0;
 	OUTBuffer[1]= SET_IO_OUTPUT;
-	OUTBuffer[2] = outFlag;
+	OUTBuffer[2] = outFlags;
 	r = writeData(3);
 	usleep(20*1000);
 	readData();			// read and clear the input buffer
@@ -643,7 +657,7 @@ int PowerUSB::generateClock(int port, int onTime, int offTime)
 	return r;
 }
 
-int PowerUSB::getOutputState(int output[])
+int PowerUSB::getOutputState(int outputs[])
 {
 	int r, i;
 	unsigned char ch;
@@ -661,7 +675,7 @@ int PowerUSB::getOutputState(int output[])
 	if (r >= 0)
 	{
 		for (i = 0; i < 7; i++) {
-			output[i] = (ch >> i) & 0x01;
+			outputs[i] = (ch >> i) & 0x01;
 		}
 	}
 	return r;
@@ -693,7 +707,7 @@ int PowerUSB::setInputTrigger(int port, int outlet1, int outlet2, int outlet3, i
 	OUTBuffer[10] = (out1 | 0x00ff);
 	OUTBuffer[11] = (out2 >> 8) | 0x00ff;
 	OUTBuffer[12] = (out2 | 0x00ff);
-	r = writeData(5); // Why is this not 13?
+	r = writeData(13); // Why is this not 13?
 	usleep(20*1000);
 	readData();			// read and clear the input buffer
 	return r;

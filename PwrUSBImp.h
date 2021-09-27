@@ -108,6 +108,7 @@ public:
 	int init(int *model);
 	int close();
 	int setCurrentDevice(int count);
+	int getCurrentDevice();
 
 	// Checks to see if PowerUSB device is connected to computer
 	/////////////////////////////////////////////////////////////////
