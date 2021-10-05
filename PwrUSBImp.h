@@ -93,13 +93,23 @@ private:
 	int readData();
 
 	// GLOBAL Variables
+
+	// The pointers to all devices we could open and access, but not linearly
+	// stored.  Inaccessible devices will have a NULL pointer in this array.
 	hid_device *AttachedDeviceHandles[POWER_USB_MAXNUM];
-	int AttachedDeviceCount, CurrentDevice;
-	int AttachedState;
+
+	// The number of devices found, but not necessarily accessible
+	int AttachedDeviceCount;
+	
+	// The attached, accessible device index, currently being used.
+	int CurrentDevice;
+	
+	bool AttachedState;
 	unsigned char OUTBuffer[65];	// Allocate a memory buffer equal to the OUT endpoint size + 1
 	unsigned char INBuffer[65];	// Allocate a memory buffer equal to the IN endpoint size + 1
 	void *sharedLibraryHandle;	// Pointer to Shared Library
 	bool onOffCheck( int port, int status );
+	int setCurrentDevice(int count);
 
 public:
 	static bool debugging;
@@ -107,7 +117,6 @@ public:
 	virtual ~PowerUSB() {}
 	int init(int *model);
 	int close();
-	int setCurrentDevice(int count);
 	int getCurrentDevice();
 
 	// Checks to see if PowerUSB device is connected to computer
@@ -190,5 +199,8 @@ public:
 	// Switch off the computer outlet and switch it back on after resetTimeSec
 	///////////////////////////////////////////////////////////////////////////////
 	int powerCycle(int resetTimeSec);
+
+	bool haveDeviceAtIndex( int useDev );
+	bool selectDevice( int useDev );
 };
 #endif

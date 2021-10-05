@@ -18,8 +18,9 @@ LIB=libpowerusb.so
 
 LIBDIR=/usr/local/lib
 
-CFLAGS=-fPIC -I. -Wno-format-security
-CXXFLAGS=$(CFLAGS) -I. -Wno-format-security
+CFLAGS=-fPIC -I. -Wno-format-security -g
+CXXFLAGS=$(CFLAGS) -I. -Wno-format-security -g
+LDFLAGS=-g
 
 $(LIB): $(OFILES)
 	g++ -shared -o $(LIB) $(OFILES) $(LDFLAGS)
