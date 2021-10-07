@@ -44,6 +44,8 @@
 extern "C" {
 #endif
 
+extern int hid_debugging;
+
 struct libusb_device_handle;
 
 struct hid_device_ {
@@ -141,6 +143,7 @@ struct hid_device_ {
 		    @returns
 				This function returns 0 on success and -1 on error.
 		*/
+		void HID_API_EXPORT hid_shutdown();
 		int HID_API_EXPORT HID_API_CALL hid_exit(void);
 
 		/** @brief Enumerate the HID Devices.

@@ -55,7 +55,6 @@ extern "C" {
 #define LOG(...) do {} while (0)
 #endif
 
-
 /* Uncomment to enable the retrieval of Usage and Usage Page in
 hid_enumerate(). Warning, this is very invasive as it requires the detach
 and re-attach of the kernel driver. See comments inside hid_enumerate().
@@ -71,6 +70,7 @@ struct input_report {
 };
 
 static int initialized = 0;
+static libusb_context *context;
 
 uint16_t get_usb_code_for_current_locale(void);
 static int return_data(hid_device *dev, unsigned char *data, size_t length);
@@ -345,6 +345,18 @@ static char *make_path(libusb_device *dev, int interface_number)
 	return strdup(str);
 }
 
+int hid_debugging = 0;
+
+void HID_API_EXPORT hid_shutdown() {
+	if( hid_debugging ) {
+		fprintf(stderr, "hid_shutdown: initialized=%d\n", initialized );
+	}
+	if( initialized ) {
+		initialized = 0;
+		libusb_exit(context);
+	}
+}
+
 struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, unsigned short product_id)
 {
 	libusb_device **devs;
@@ -359,7 +371,11 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 	setlocale(LC_ALL,"");
 	
 	if (!initialized) {
-		libusb_init(NULL);
+		if( hid_debugging ) {
+			fprintf(stderr,"hid_enumerate: not initialized, libusb_init()\n");
+		}
+		libusb_init(&context);
+		libusb_set_debug(context, hid_debugging );
 		initialized = 1;
 	}
 	
@@ -1004,8 +1020,9 @@ void HID_API_EXPORT hid_close(hid_device *dev)
 	pthread_join(dev->thread, NULL);
 	
 	/* Clean up the Transfer objects allocated in read_thread(). */
-	free(dev->transfer->buffer);
-	libusb_free_transfer(dev->transfer);
+//	free(dev->transfer->buffer);
+//	libusb_free_transfer(dev->transfer);
+//	dev->transfer = NULL;
 	
 	/* release the interface */
 	libusb_release_interface(dev->device_handle, dev->interface);

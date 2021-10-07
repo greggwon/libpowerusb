@@ -22,6 +22,8 @@ CFLAGS=-fPIC -I. -Wno-format-security -g
 CXXFLAGS=$(CFLAGS) -I. -Wno-format-security -g
 LDFLAGS=-g
 
+PwrUSBImp.o : PwrUSBImp.h
+
 $(LIB): $(OFILES)
 	g++ -shared -o $(LIB) $(OFILES) $(LDFLAGS)
 

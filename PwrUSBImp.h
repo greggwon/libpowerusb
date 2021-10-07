@@ -103,10 +103,9 @@ private:
 	
 	// The attached, accessible device index, currently being used.
 	int CurrentDevice;
-	
-	bool AttachedState;
-	unsigned char OUTBuffer[65];	// Allocate a memory buffer equal to the OUT endpoint size + 1
-	unsigned char INBuffer[65];	// Allocate a memory buffer equal to the IN endpoint size + 1
+	int AttachedState;
+	unsigned char OUTBuffer[BUF_WRT];	// Allocate a memory buffer equal to the OUT endpoint size + 1
+	unsigned char INBuffer[BUF_WRT];	// Allocate a memory buffer equal to the IN endpoint size + 1
 	void *sharedLibraryHandle;	// Pointer to Shared Library
 	bool onOffCheck( int port, int status );
 	int setCurrentDevice(int count);
@@ -114,7 +113,7 @@ private:
 public:
 	static bool debugging;
 	PowerUSB();
-	virtual ~PowerUSB() {}
+	virtual ~PowerUSB();
 	int init(int *model);
 	int close();
 	int getCurrentDevice();
@@ -174,6 +173,13 @@ public:
 	#define	POWER_CYCLE			0x92
 	#define	READ_WDT 			0x93	//-> return the all status.
 	#define	HEART_BEAT			0x94
+
+	// void (*makePacket)( unsigned char buf[BUF_WRT], int &n )
+	template<typename T>
+	int performUSBTask( T fp );
+
+	template<typename T, typename S>
+	int performUSBTaskWithResult( T fp, S resp );
 
 	// Starts watchdog in the PowerUSB. 
 	// HbTimeSec: expected time for heartbeat
