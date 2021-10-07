@@ -349,14 +349,14 @@ int PowerUSB::readDefaultPortState( int *port1, int *port2, int *port3 )
 ///////////////////////////////////////////////////////////////////////
 int PowerUSB::getFirmwareVersion()
 {
-	int r;
+	int r, vers = -1;
 	r = performUSBTaskWithResult( [](unsigned char *buf, int &n ){
 		buf[n++] = 0;
 		buf[n++]= READ_FIRMWARE_VER;
-	}, [&r](unsigned char *res, int i ) {
-		r = res[0];
+	}, [&r,&vers](unsigned char *res, int i ) {
+		vers = res[0];
 	});
-	return r;
+	return vers;
 }
 
 std::string PowerUSB::getModelName() {
